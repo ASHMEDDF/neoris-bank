@@ -1,5 +1,6 @@
 package com.bank.neoris.exception;
 
+import com.bank.neoris.dto.ErrorResponseDto;
 import com.bank.neoris.exception.account.AccountIsNotZeroException;
 import com.bank.neoris.exception.account.AccountNotExistsException;
 import com.bank.neoris.exception.account.AccountsNotFoundException;
@@ -14,100 +15,71 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-import java.util.HashMap;
-import java.util.Map;
-
 @ControllerAdvice
 public class ExceptionCustomAdvice {
-
-    private static final String MESSAGE = "message";
 
     @ResponseBody
     @ExceptionHandler(UserNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public Map<String,String> exceptionHandlerUserNotFound (UserNotFoundException exception){
+    public ErrorResponseDto exceptionHandlerUserNotFound (UserNotFoundException exception){
 
-        Map<String,String> errorMap = new HashMap<>();
-        errorMap.put(MESSAGE, exception.getMessage());
-
-        return errorMap;
+        return new ErrorResponseDto(exception.getMessage());
     }
 
     @ResponseBody
     @ExceptionHandler(UserAlreadyExistsException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public Map<String,String> exceptionHandlerUserAlreadyExists (UserAlreadyExistsException exception){
+    public ErrorResponseDto exceptionHandlerUserAlreadyExists (UserAlreadyExistsException exception){
 
-        Map<String,String> errorMap = new HashMap<>();
-        errorMap.put(MESSAGE, exception.getMessage());
-
-        return errorMap;
+        return new ErrorResponseDto(exception.getMessage());
     }
 
     @ResponseBody
     @ExceptionHandler(UserNotLegalAgeException.class)
     @ResponseStatus(HttpStatus.TOO_EARLY)
-    public Map<String,String> exceptionHandlerUserNotLegalAge (UserNotLegalAgeException exception){
+    public ErrorResponseDto exceptionHandlerUserNotLegalAge (UserNotLegalAgeException exception){
 
-        Map<String,String> errorMap = new HashMap<>();
-        errorMap.put(MESSAGE, exception.getMessage());
-
-        return errorMap;
+        return new ErrorResponseDto(exception.getMessage());
     }
 
 
     @ResponseBody
     @ExceptionHandler(AccountsNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public Map<String,String> exceptionHandlerAccountNotFound (AccountsNotFoundException exception){
+    public ErrorResponseDto exceptionHandlerAccountNotFound (AccountsNotFoundException exception){
 
-        Map<String,String> errorMap = new HashMap<>();
-        errorMap.put(MESSAGE, exception.getMessage());
-
-        return errorMap;
+        return new ErrorResponseDto(exception.getMessage());
     }
 
     @ResponseBody
     @ExceptionHandler(AccountIsNotZeroException.class)
     @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
-    public Map<String,String> exceptionHandlerAccountIsNotZero (AccountIsNotZeroException exception){
+    public ErrorResponseDto exceptionHandlerAccountIsNotZero (AccountIsNotZeroException exception){
 
-        Map<String,String> errorMap = new HashMap<>();
-        errorMap.put(MESSAGE, exception.getMessage());
-
-        return errorMap;
+        return new ErrorResponseDto(exception.getMessage());
     }
 
     @ResponseBody
     @ExceptionHandler(TransactionValuesException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public Map<String,String> exceptionHandlerTransactionValues (TransactionValuesException exception){
+    public ErrorResponseDto exceptionHandlerTransactionValues (TransactionValuesException exception){
 
-        Map<String,String> errorMap = new HashMap<>();
-        errorMap.put(MESSAGE, exception.getMessage());
-
-        return errorMap;
+        return new ErrorResponseDto(exception.getMessage());
     }
 
     @ResponseBody
     @ExceptionHandler(AccountNotExistsException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public Map<String,String> exceptionHandlerAccountNotExist (AccountNotExistsException exception){
+    public ErrorResponseDto exceptionHandlerAccountNotExist (AccountNotExistsException exception){
 
-        Map<String,String> errorMap = new HashMap<>();
-        errorMap.put(MESSAGE, exception.getMessage());
-
-        return errorMap;
+        return new ErrorResponseDto(exception.getMessage());
     }
 
     @ResponseBody
     @ExceptionHandler(TransactionNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public Map<String,String> exceptionHandlerTransactionNotExist (TransactionNotFoundException exception){
+    public ErrorResponseDto exceptionHandlerTransactionNotExist (TransactionNotFoundException exception){
 
-        Map<String,String> errorMap = new HashMap<>();
-        errorMap.put(MESSAGE, exception.getMessage());
-
-        return errorMap;
+        return new ErrorResponseDto(exception.getMessage());
     }
 }

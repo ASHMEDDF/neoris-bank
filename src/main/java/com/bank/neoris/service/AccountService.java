@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @AllArgsConstructor
@@ -36,7 +35,7 @@ public class AccountService {
         return accountRepository.save(newAccount);
     }
 
-    public Optional<List<Account>> getAccountsByClientId (Long clientId) {
+    public List<Account> getAccountsByClientId (Long clientId) {
 
         if (clientRepository.findById(clientId).isEmpty()) {
             throw new UserNotFoundException(clientId);
@@ -46,7 +45,7 @@ public class AccountService {
         if (allByClientIdentification.isEmpty()){
             throw new AccountsNotFoundException(clientId);
         }
-        return Optional.of(allByClientIdentification);
+        return allByClientIdentification;
 
     }
 

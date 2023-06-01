@@ -15,11 +15,15 @@ import com.bank.neoris.exception.user.UserNotFoundException;
 import com.bank.neoris.repository.AccountRepository;
 import com.bank.neoris.repository.ClientRepository;
 import com.bank.neoris.repository.TransactionRepository;
+import org.junit.Assert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 
 import java.time.LocalDate;
 import java.util.Arrays;
@@ -187,7 +191,7 @@ class TransactionsServiceTests {
 
         Client client = new Client();
         client.setIdentification(clientId);
-        client.setName("John Doe");
+        client.setName("Test Name");
 
         Account account1 = new Account();
         account1.setAccountNumber(123456789L);
@@ -201,13 +205,16 @@ class TransactionsServiceTests {
 
         List<Account> accountList = Arrays.asList(account1, account2);
 
-        when(transactionRepository.findByDateBetween(initialDate, endDate)).thenReturn(transactionsList);
+        Page<Transaction> transactionsPage = new PageImpl<>(transactionsList);
+
+        when(transactionRepository.findByDateBetween(initialDate, endDate, PageRequest.of(0, 10))).thenReturn(transactionsPage);
         when(clientRepository.findById(clientId)).thenReturn(Optional.of(client));
         when(accountRepository.findAllByClientIdentification(clientId)).thenReturn(accountList);
 
-        List<ResponseReportByAccountDto> report = transactionService.generateReportStatusAccount(initialDate, endDate, clientId);
+        Page<ResponseReportByAccountDto> reportPage = transactionService.generateReportStatusAccount(initialDate, endDate, clientId, PageRequest.of(0, 10));
 
-        assertNotNull(report);
+        assertNotNull(reportPage);
+        List<ResponseReportByAccountDto> report = reportPage.getContent();
         assertEquals(2, report.size());
 
         ResponseReportByAccountDto report1 = report.get(0);
@@ -228,7 +235,7 @@ class TransactionsServiceTests {
         assertEquals(transaction2.getTransactionValue(), report2.getTransaction(), 0.0);
         assertEquals(transaction2.getFinalBalance(), report2.getAvailableBalance(), 0.0);
 
-        verify(transactionRepository, times(1)).findByDateBetween(initialDate, endDate);
+        verify(transactionRepository, times(1)).findByDateBetween(initialDate, endDate, PageRequest.of(0, 10));
         verify(clientRepository, times(1)).findById(clientId);
         verify(accountRepository, times(1)).findAllByClientIdentification(clientId);
     }
@@ -239,11 +246,13 @@ class TransactionsServiceTests {
         LocalDate endDate = LocalDate.of(2022, 12, 31);
         Long clientId = 123456788L;
 
-        when(transactionRepository.findByDateBetween(initialDate, endDate)).thenReturn(Collections.emptyList());
+        Page<Transaction> emptyTransactionPage = new PageImpl<>(Collections.emptyList());
 
-        assertThrows(TransactionNotFoundException.class, () -> transactionService.generateReportStatusAccount(initialDate, endDate, clientId));
+        when(transactionRepository.findByDateBetween(initialDate, endDate, PageRequest.of(0, 10))).thenReturn(emptyTransactionPage);
 
-        verify(transactionRepository, times(1)).findByDateBetween(initialDate, endDate);
+        assertThrows(TransactionNotFoundException.class, () -> transactionService.generateReportStatusAccount(initialDate, endDate, clientId, PageRequest.of(0, 10)));
+
+        verify(transactionRepository, times(1)).findByDateBetween(initialDate, endDate, PageRequest.of(0, 10));
         verify(clientRepository, never()).findById(any(Long.class));
         verify(accountRepository, never()).findAllByClientIdentification(any(Long.class));
     }
@@ -263,15 +272,18 @@ class TransactionsServiceTests {
 
         List<Transaction> transactionsList = Collections.singletonList(transaction);
 
-        when(transactionRepository.findByDateBetween(initialDate, endDate)).thenReturn(transactionsList);
+        Page<Transaction> transactionsPage = new PageImpl<>(transactionsList);
+
+        when(transactionRepository.findByDateBetween(initialDate, endDate, PageRequest.of(0, 10))).thenReturn(transactionsPage);
         when(clientRepository.findById(clientId)).thenReturn(Optional.empty());
 
-        assertThrows(UserNotFoundException.class, () -> transactionService.generateReportStatusAccount(initialDate, endDate, clientId));
+        assertThrows(UserNotFoundException.class, () -> transactionService.generateReportStatusAccount(initialDate, endDate, clientId, PageRequest.of(0, 10)));
 
-        verify(transactionRepository, times(1)).findByDateBetween(initialDate, endDate);
+        verify(transactionRepository, times(1)).findByDateBetween(initialDate, endDate, PageRequest.of(0, 10));
         verify(clientRepository, times(1)).findById(clientId);
         verify(accountRepository, never()).findAllByClientIdentification(any(Long.class));
     }
+
 
     @Test
     void testGenerateReportStatusAccount_AccountsNotFound() {
@@ -288,18 +300,21 @@ class TransactionsServiceTests {
 
         List<Transaction> transactionsList = Collections.singletonList(transaction);
 
+        Page<Transaction> transactionsPage = new PageImpl<>(transactionsList);
+
         Client client = new Client();
         client.setIdentification(clientId);
-        client.setName("John Doe");
+        client.setName("Test Name");
 
-        when(transactionRepository.findByDateBetween(initialDate, endDate)).thenReturn(transactionsList);
+        when(transactionRepository.findByDateBetween(initialDate, endDate, PageRequest.of(0, 10))).thenReturn(transactionsPage);
         when(clientRepository.findById(clientId)).thenReturn(Optional.of(client));
         when(accountRepository.findAllByClientIdentification(clientId)).thenReturn(Collections.emptyList());
 
-        assertThrows(AccountsNotFoundException.class, () -> transactionService.generateReportStatusAccount(initialDate, endDate, clientId));
+        assertThrows(AccountsNotFoundException.class, () -> transactionService.generateReportStatusAccount(initialDate, endDate, clientId, PageRequest.of(0, 10)));
 
-        verify(transactionRepository, times(1)).findByDateBetween(initialDate, endDate);
+        verify(transactionRepository, times(1)).findByDateBetween(initialDate, endDate, PageRequest.of(0, 10));
         verify(clientRepository, times(1)).findById(clientId);
         verify(accountRepository, times(1)).findAllByClientIdentification(clientId);
     }
+
 }

@@ -3,11 +3,8 @@ package com.bank.neoris.service;
 import com.bank.neoris.domain.Account;
 import com.bank.neoris.domain.Client;
 import com.bank.neoris.enumerations.AccountTypes;
-import com.bank.neoris.exception.account.AccountIsNotZeroException;
 import com.bank.neoris.exception.account.AccountsNotFoundException;
-import com.bank.neoris.exception.user.UserAlreadyExistsException;
 import com.bank.neoris.exception.user.UserNotFoundException;
-import com.bank.neoris.exception.user.UserNotLegalAgeException;
 import com.bank.neoris.repository.AccountRepository;
 import com.bank.neoris.repository.ClientRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -51,7 +48,7 @@ class AccountServiceTests {
 
         Client client = new Client();
         client.setIdentification(clientId);
-        client.setName("John Doe");
+        client.setName("Test Name");
 
         when(clientRepository.findById(clientId)).thenReturn(Optional.of(client));
         when(accountRepository.save(any(Account.class))).thenReturn(accountToCreate);
@@ -91,7 +88,7 @@ class AccountServiceTests {
 
         Client client = new Client();
         client.setIdentification(clientId);
-        client.setName("John Doe");
+        client.setName("Test Name");
 
         Account account1 = new Account();
         account1.setAccountType(AccountTypes.AHORROS);
@@ -110,10 +107,10 @@ class AccountServiceTests {
         when(clientRepository.findById(clientId)).thenReturn(Optional.of(client));
         when(accountRepository.findAllByClientIdentification(clientId)).thenReturn(accounts);
 
-        Optional<List<Account>> retrievedAccounts = accountService.getAccountsByClientId(clientId);
+        List<Account> retrievedAccounts = accountService.getAccountsByClientId(clientId);
 
-        assertTrue(retrievedAccounts.isPresent());
-        assertEquals(accounts.size(), retrievedAccounts.get().size());
+        assertFalse(retrievedAccounts.isEmpty());
+        assertEquals(accounts.size(), retrievedAccounts.size());
 
         verify(clientRepository, times(1)).findById(clientId);
         verify(accountRepository, times(1)).findAllByClientIdentification(clientId);
@@ -137,7 +134,7 @@ class AccountServiceTests {
 
         Client client = new Client();
         client.setIdentification(clientId);
-        client.setName("John Doe");
+        client.setName("Test Name");
 
         when(clientRepository.findById(clientId)).thenReturn(Optional.of(client));
         when(accountRepository.findAllByClientIdentification(clientId)).thenReturn(Collections.emptyList());

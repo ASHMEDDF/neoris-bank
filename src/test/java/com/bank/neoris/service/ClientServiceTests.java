@@ -21,10 +21,10 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-class BankServiceTests {
+class ClientServiceTests {
 
     @InjectMocks
-    private BankService bankService;
+    private ClientService clientService;
 
     @Mock
     private ClientRepository clientRepository;
@@ -41,13 +41,13 @@ class BankServiceTests {
     void testSaveNewClient_Success() {
         Client clientToCreate = new Client();
         clientToCreate.setIdentification(123456788L);
-        clientToCreate.setName("John Doe");
+        clientToCreate.setName("Test Name");
         clientToCreate.setAge(25);
 
         when(clientRepository.findById(clientToCreate.getIdentification())).thenReturn(Optional.empty());
         when(clientRepository.save(any(Client.class))).thenReturn(clientToCreate);
 
-        Client savedClient = bankService.saveNewClient(clientToCreate);
+        Client savedClient = clientService.saveNewClient(clientToCreate);
 
         assertNotNull(savedClient);
         assertEquals(clientToCreate.getIdentification(), savedClient.getIdentification());
@@ -65,7 +65,7 @@ class BankServiceTests {
 
         when(clientRepository.findById(clientToCreate.getIdentification())).thenReturn(Optional.of(clientToCreate));
 
-        assertThrows(UserAlreadyExistsException.class, () -> bankService.saveNewClient(clientToCreate));
+        assertThrows(UserAlreadyExistsException.class, () -> clientService.saveNewClient(clientToCreate));
 
         verify(clientRepository, times(1)).findById(clientToCreate.getIdentification());
         verify(clientRepository, never()).save(any(Client.class));
@@ -77,7 +77,7 @@ class BankServiceTests {
         clientToCreate.setIdentification(123456788L);
         clientToCreate.setAge(16);
 
-        assertThrows(UserNotLegalAgeException.class, () -> bankService.saveNewClient(clientToCreate));
+        assertThrows(UserNotLegalAgeException.class, () -> clientService.saveNewClient(clientToCreate));
 
         verify(clientRepository, never()).save(any(Client.class));
     }
@@ -87,7 +87,7 @@ class BankServiceTests {
         // Arrange
         Client clientToUpdate = new Client();
         clientToUpdate.setIdentification(123456788L);
-        clientToUpdate.setName("John Doe");
+        clientToUpdate.setName("Test Name");
         clientToUpdate.setAge(25);
 
         ClientRepository clientRepositoryMock = mock(ClientRepository.class);
@@ -95,9 +95,9 @@ class BankServiceTests {
         when(clientRepositoryMock.save(any(Client.class))).thenReturn(clientToUpdate);
 
         // Crear una instancia de BankService y establecer el mock del ClientRepository
-        BankService bankService = new BankService(clientRepositoryMock, accountRepository);
+        ClientService clientService = new ClientService(clientRepositoryMock, accountRepository);
 
-        Client updatedClient = bankService.updateClient(clientToUpdate);
+        Client updatedClient = clientService.updateClient(clientToUpdate);
 
         assertNotNull(updatedClient);
         assertEquals(clientToUpdate.getIdentification(), updatedClient.getIdentification());
@@ -114,7 +114,7 @@ class BankServiceTests {
         clientToUpdate.setIdentification(123456788L);
         clientToUpdate.setAge(16);
 
-        assertThrows(UserNotLegalAgeException.class, () -> bankService.updateClient(clientToUpdate));
+        assertThrows(UserNotLegalAgeException.class, () -> clientService.updateClient(clientToUpdate));
 
         verify(clientRepository, never()).existsById(anyLong());
         verify(clientRepository, never()).save(any(Client.class));
@@ -128,7 +128,7 @@ class BankServiceTests {
 
         when(clientRepository.existsById(clientToUpdate.getIdentification())).thenReturn(false);
 
-        assertThrows(UserNotFoundException.class, () -> bankService.updateClient(clientToUpdate));
+        assertThrows(UserNotFoundException.class, () -> clientService.updateClient(clientToUpdate));
 
         verify(clientRepository, times(1)).existsById(clientToUpdate.getIdentification());
         verify(clientRepository, never()).save(any(Client.class));
@@ -139,12 +139,12 @@ class BankServiceTests {
         Long clientId = 123456788L;
         Client client = new Client();
         client.setIdentification(clientId);
-        client.setName("John Doe");
+        client.setName("Test Name");
         client.setAge(25);
 
         when(clientRepository.findById(clientId)).thenReturn(Optional.of(client));
 
-        Optional<Client> retrievedClient = bankService.getByClientId(clientId);
+        Optional<Client> retrievedClient = clientService.getByClientId(clientId);
 
         assertTrue(retrievedClient.isPresent());
         assertEquals(client.getIdentification(), retrievedClient.get().getIdentification());
@@ -160,7 +160,7 @@ class BankServiceTests {
 
         when(clientRepository.findById(clientId)).thenReturn(Optional.empty());
 
-        assertThrows(UserNotFoundException.class, () -> bankService.getByClientId(clientId));
+        assertThrows(UserNotFoundException.class, () -> clientService.getByClientId(clientId));
 
         verify(clientRepository, times(1)).findById(clientId);
     }
@@ -170,13 +170,13 @@ class BankServiceTests {
         Long clientId = 123456788L;
         Client client = new Client();
         client.setIdentification(clientId);
-        client.setName("John Doe");
+        client.setName("Test Name");
         client.setAge(25);
 
         when(clientRepository.findById(clientId)).thenReturn(Optional.of(client));
         when(accountRepository.findAllByClientIdentification(clientId)).thenReturn(Collections.emptyList());
 
-        Boolean deleted = bankService.deleteByClientId(clientId);
+        Boolean deleted = clientService.deleteByClientId(clientId);
         assertTrue(deleted);
 
         verify(clientRepository, times(1)).findById(clientId);
@@ -190,7 +190,7 @@ class BankServiceTests {
 
         when(clientRepository.findById(clientId)).thenReturn(Optional.empty());
 
-        assertThrows(UserNotFoundException.class, () -> bankService.deleteByClientId(clientId));
+        assertThrows(UserNotFoundException.class, () -> clientService.deleteByClientId(clientId));
 
         verify(clientRepository, times(1)).findById(clientId);
         verify(accountRepository, never()).findAllByClientIdentification(anyLong());
@@ -202,22 +202,26 @@ class BankServiceTests {
         Long clientId = 123456788L;
         Client client = new Client();
         client.setIdentification(clientId);
-        client.setName("John Doe");
+        client.setName("Test Name");
         client.setAge(25);
 
         // dos cuentas con saldo distinto de cero
         Account account1 = new Account();
+        account1.setAccountNumber(1L);
         account1.setInitialBalance(100);
         Account account2 = new Account();
+        account2.setAccountNumber(2L);
         account2.setInitialBalance(200);
 
         when(clientRepository.findById(clientId)).thenReturn(Optional.of(client));
         when(accountRepository.findAllByClientIdentification(clientId)).thenReturn(Arrays.asList(account1, account2));
 
-        assertThrows(AccountIsNotZeroException.class, () -> bankService.deleteByClientId(clientId));
+        AccountIsNotZeroException exception = assertThrows(AccountIsNotZeroException.class, () -> clientService.deleteByClientId(clientId));
+
+        assertEquals("Client with ID 123456788 has money in the account(s) 1, 2", exception.getMessage());
 
         verify(clientRepository, times(1)).findById(clientId);
-        verify(accountRepository, times(1)).findAllByClientIdentification(clientId);
+        verify(accountRepository, times(2)).findAllByClientIdentification(clientId);
         verify(clientRepository, never()).delete(any(Client.class));
     }
 

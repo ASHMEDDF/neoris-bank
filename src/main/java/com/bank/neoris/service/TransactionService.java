@@ -15,6 +15,8 @@ import com.bank.neoris.repository.AccountRepository;
 import com.bank.neoris.repository.ClientRepository;
 import com.bank.neoris.repository.TransactionRepository;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -74,38 +76,41 @@ public class TransactionService {
         return LocalDate.parse(formattedDate, formatter);
     }
 
-    public List<ResponseReportByAccountDto> generateReportStatusAccount(LocalDate initialDate, LocalDate endDate, Long clientId) {
+    public Page<ResponseReportByAccountDto> generateReportStatusAccount(LocalDate initialDate, LocalDate endDate, Long clientId, Pageable pageable) {
+        Page<Transaction> transactionsPage = transactionRepository.findByDateBetween(initialDate, endDate, pageable);
 
-        List<Transaction> transactionsList = transactionRepository.findByDateBetween(initialDate, endDate);
-        if (transactionsList.isEmpty()){
+        if (transactionsPage.isEmpty()) {
             throw new TransactionNotFoundException();
         }
+
         Optional<Client> client = clientRepository.findById(clientId);
-        if (client.isEmpty()){
+
+        if (client.isEmpty()) {
             throw new UserNotFoundException(clientId);
         }
 
         List<Account> accountList = accountRepository.findAllByClientIdentification(clientId);
-        if (accountList.isEmpty()){
+
+        if (accountList.isEmpty()) {
             throw new AccountsNotFoundException(clientId);
         }
 
-        return transactionsList.stream()
-                .filter(transaction -> accountList.stream().anyMatch(account -> account.getAccountNumber().equals(transaction.getAccountNumber())))
-                .map(transaction -> {
-                    Account account = accountList.stream()
-                            .filter(acc -> acc.getAccountNumber().equals(transaction.getAccountNumber()))
-                            .findFirst()
-                            .orElse(null);
-                    assert account != null;
-                    return new ResponseReportByAccountDto(transaction.getDate(),
-                            client.get().getName(),
-                            transaction.getAccountNumber(),
-                            account.getAccountType().toString(),
-                            transaction.getInitialBalance(),
-                            account.getState(),
-                            transaction.getTransactionValue(),
-                            transaction.getFinalBalance());
-                }).toList();
+        return transactionsPage.map(transaction -> {
+            Account account = accountList.stream()
+                    .filter(acc -> acc.getAccountNumber().equals(transaction.getAccountNumber()))
+                    .findFirst()
+                    .orElse(null);
+
+            assert account != null;
+
+            return new ResponseReportByAccountDto(transaction.getDate(),
+                    client.get().getName(),
+                    transaction.getAccountNumber(),
+                    account.getAccountType().toString(),
+                    transaction.getInitialBalance(),
+                    account.getState(),
+                    transaction.getTransactionValue(),
+                    transaction.getFinalBalance());
+        });
     }
 }
