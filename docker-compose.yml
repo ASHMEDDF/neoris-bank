@@ -1,0 +1,9 @@
+version: '1'
+
+services:
+  neoris-bank:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"

@@ -26,10 +26,8 @@ la tarea de **gradle build**
 ### Despliegue 📦
 
 Para hacer el deploy en Docker podemos ejecutar el comando desde nuestra terminal.
-- primero nos dirigimos a la carpeta o directorio donde se encuentra el proyecto
-- ejecutamos el comando  **$** docker build -t neoris-bank .
-- en el paso anterior es importante incluir el punto "." del final
-- y para finalizar ejecutamos el comando **$** docker run -p 8080:8080 neoris-bank
+- primero nos dirigimos a la carpeta o directorio donde se encuentra el proyecto por medio del terminal
+- luego ejecutamos el comando  **$** docker-compose up
 
 
 ### Ejecutando las pruebas ⚙️
