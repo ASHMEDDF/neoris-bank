@@ -14,7 +14,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/")
 @AllArgsConstructor
-public class BankController {
+public class AccountController {
 
     private AccountService accountService;
 
